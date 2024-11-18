@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 import pandas as pd
-import re
 from transformers import BertForMaskedLM, BertTokenizer, pipeline, AutoTokenizer
 from torch.nn.utils.rnn import pad_sequence
 
@@ -19,4 +18,4 @@ def Tokenize_Input(excl):
 	torch.save(pad_sequence(tokenized_in, batch_first=True), excl.replace(".xlsx", ".pt"))
 
 
-Tokenize_Input("all_PDB_protein_sequences.xlsx")
+Tokenize_Input("single_chain_protein_sequences.xlsx")
