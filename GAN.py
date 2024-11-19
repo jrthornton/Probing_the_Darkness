@@ -86,7 +86,7 @@ class Discriminator_LSTM(nn.Module):
         self.embedding_dim = self.config['discriminator']['embedding_dim']
         self.hidden_size = self.config['discriminator']['hidden_size']
         self.num_layers = self.config['discriminator']['num_layers']
-        self.len_dict = self.config['dataset']['len_dict']
+        self.len_dict = self.config['dataset']['len_dict'] + 1 # Plus one to include padding token
         
         # Define layers: embedding, LSTM, fully connected
         self.embedding = nn.Embedding(self.len_dict, self.embedding_dim)
@@ -166,6 +166,9 @@ def Train(model, config):
     real_lengths = real_lengths[mask]
 
     real = real[:, :config['dataset']['max_sequence_length']]
+    
+    real = real - 5
+    real = torch.clamp(real, min = 0)
 
     # Create dataset dropping last examples for easier handling
     dataset = TensorDataset(real, real_lengths)
@@ -186,7 +189,7 @@ def Train(model, config):
             batch_data = batch_data.to(device)
 
             # Initialize input to random noise with first dimension containing the sequence length
-            input = torch.randn((config['training']['batch_size'], config['generator']['input_size']))
+            input = torch.zeros((config['training']['batch_size'], config['generator']['input_size']))
             input[:, 0] = lengths
             input = input.to(device)
             
@@ -227,7 +230,7 @@ def Train(model, config):
         
         # At the end of each epoch create 5 sampled amino acid sequences of random lengths
         with torch.no_grad():
-            input = torch.randn((5, config['generator']['input_size'])).to(device)
+            input = torch.zeros((5, config['generator']['input_size'])).to(device)
             
             gen_sequences = model.Generator(input, torch.randint(low=30, high=config['dataset']['max_sequence_length'], size=(5,)))
             generated_sequences.append(gen_sequences.cpu().numpy())
